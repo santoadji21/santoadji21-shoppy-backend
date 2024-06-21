@@ -1,0 +1,55 @@
+services:
+  nest_shoppy:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: development
+    container_name: nest_shoppy
+    restart: on-failure
+    command: ./entrypoint.sh
+    ports:
+      - '3001:3000'
+    env_file:
+      - ./.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - nest-shoppy
+
+  postgres:
+    image: postgres:15
+    container_name: postgres_shoppy
+    environment:
+      POSTGRES_DB: nest_shoppy
+      POSTGRES_USER: nest_shoppy
+      POSTGRES_PASSWORD: nest_shoppy_password
+    ports:
+      - '5432:5432'
+    volumes:
+      - nest-shoppy:/var/lib/postgresql/data
+    networks:
+      - nest-shoppy
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_shoppy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+    networks:
+      - nest-shoppy
+
+volumes:
+  nest-shoppy:
+    driver: local
+
+networks:
+  nest-shoppy:
+    driver: bridge
