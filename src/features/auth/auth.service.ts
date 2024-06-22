@@ -1,39 +1,52 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { comparePasswords, excludePassword } from '@/common/utils/auth.utils';
+import { TokenPayload } from '@/features/auth/schema/token.schema';
 import { UsersService } from '@/features/users/users.service';
-import * as bcrypt from 'bcrypt';
-import { excludePassword } from '@/common/utils/exclude.password.utils';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
+import { Response } from 'express';
+import ms from 'ms';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
+  async login(user: User, res: Response) {
+    const expired = new Date();
+    expired.setMilliseconds(
+      expired.getMilliseconds() +
+        ms(this.configService.getOrThrow<string>('JWT_EXPIRES_IN')),
+    );
+    const tokenPayload: TokenPayload = {
+      email: user.email,
+      userId: user.id,
+    };
+    const token = await this.jwtService.signAsync(tokenPayload);
+    res.cookie('token', token, {
+      secure: true,
+      httpOnly: true,
+      expires: expired,
+    });
 
-  findAll() {
-    return `This action returns all auth`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    return token;
   }
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
-    if (user && (await bcrypt.compare(password, user.password))) {
-      return excludePassword(user);
+    const user = await this.usersService.getUser({ email });
+    if (!user) {
+      throw new UnauthorizedException('Email does not exist');
     }
-    return null;
+
+    const isPasswordValid = await comparePasswords(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    return excludePassword(user);
   }
 }

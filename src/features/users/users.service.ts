@@ -1,5 +1,4 @@
-import { excludePassword } from '@/common/utils/exclude.password.utils';
-import { hashPassword } from '@/common/utils/hash.util';
+import { excludePassword, hashPassword } from '@/common/utils/auth.utils';
 import {
   CreateUserDto,
   UserResponseDto,
@@ -7,6 +6,7 @@ import {
 import { UpdateUserDto } from '@/features/users/dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -28,7 +28,11 @@ export class UsersService {
   }
 
   async findOne(id: number) {
-    return await this.prisma.user.findUnique({ where: { id } });
+    return await this.prisma.user.findUniqueOrThrow({ where: { id } });
+  }
+
+  async getUser(filter: Prisma.UserWhereUniqueInput) {
+    return await this.prisma.user.findUnique({ where: filter });
   }
 
   async findByEmail(email: string) {

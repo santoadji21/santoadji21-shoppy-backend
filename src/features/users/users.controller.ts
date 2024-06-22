@@ -21,6 +21,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { NoFilesInterceptor } from '@nestjs/platform-express';
+import { Prisma } from '@prisma/client';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Controller('users')
@@ -42,6 +43,14 @@ export class UsersController {
       return user;
     } catch (error) {
       this.logger.error('Error creating user', error);
+
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException('Email already exists');
+      }
+
       throw new BadRequestException('Failed to create user');
     }
   }
