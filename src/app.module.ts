@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from '@/common/interceptor/response-interceptor';
 import { AuthModule } from './features/auth/auth.module';
+import { ProductsModule } from './features/products/products.module';
 
 @Module({
   imports: [
@@ -18,6 +19,8 @@ import { AuthModule } from './features/auth/auth.module';
     PrismaModule,
 
     AuthModule,
+
+    ProductsModule,
   ],
   controllers: [],
   providers: [

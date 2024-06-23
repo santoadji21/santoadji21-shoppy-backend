@@ -1,5 +1,6 @@
 import { AuthController } from '@/features/auth/auth.controller';
 import { AuthService } from '@/features/auth/auth.service';
+import { JwtStrategy } from '@/features/auth/strategies/jwt.strategies';
 import { LocalStrategy } from '@/features/auth/strategies/local.strategies';
 import { UsersModule } from '@/features/users/users.module';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -8,8 +9,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  controllers: [AuthController],
-  providers: [AuthService, PrismaService, LocalStrategy],
   imports: [
     UsersModule,
     JwtModule.registerAsync({
@@ -26,5 +25,7 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     ConfigModule,
   ],
+  controllers: [AuthController],
+  providers: [AuthService, PrismaService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule {}

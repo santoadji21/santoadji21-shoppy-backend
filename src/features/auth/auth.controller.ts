@@ -1,5 +1,5 @@
 import { AuthService } from '@/features/auth/auth.service';
-import CurrentUser from '@/features/auth/decorators/current-user.decorator';
+import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
 import { LocalAuthGuard } from '@/features/auth/guards/local-auth.guard';
 import {
   Controller,

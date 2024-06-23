@@ -1,4 +1,7 @@
 import { ZodValidation } from '@/common/decorators/zod-decorators';
+import { CurrentUser } from '@/features/auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@/features/auth/guards/jwt-auth.guard';
+import { TokenPayload } from '@/features/auth/schema/token.schema';
 import {
   CreateUserDto,
   CreateUserDtoSchema,
@@ -18,6 +21,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { NoFilesInterceptor } from '@nestjs/platform-express';
@@ -53,6 +57,12 @@ export class UsersController {
 
       throw new BadRequestException('Failed to create user');
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@CurrentUser() user: TokenPayload) {
+    return user;
   }
 
   @Get()

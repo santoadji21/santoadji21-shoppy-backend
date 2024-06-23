@@ -13,7 +13,12 @@ export class LocalAuthGuard extends AuthGuard('local') {
 
   handleRequest(err, user) {
     if (err || !user) {
-      throw err || new UnauthorizedException('Invalid credentials');
+      throw (
+        err ||
+        new UnauthorizedException(
+          'You are not authorized to perform this action',
+        )
+      );
     }
     return user;
   }
