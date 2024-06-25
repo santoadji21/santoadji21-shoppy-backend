@@ -9,16 +9,25 @@ import {
 } from '@/features/products/dto/product.dto';
 import { ProductsService } from '@/features/products/products.service';
 import {
-  Controller,
-  Get,
-  Post,
+  BadRequestException,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  FileTypeValidator,
+  Get,
+  MaxFileSizeValidator,
+  Param,
+  ParseFilePipe,
+  Patch,
+  Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { extname } from 'path';
 
 @Controller('products')
 export class ProductsController {
@@ -34,28 +43,104 @@ export class ProductsController {
     @Body() createProductDto: CreateProductDto,
     @CurrentUser() user: TokenPayload,
   ) {
-    this.logger.info(`Creating product for user ${user.userId}`);
-    this.logger.debug(`Product data: ${JSON.stringify(createProductDto)}`);
-    return this.productsService.create(createProductDto, user.userId);
+    try {
+      this.logger.info('Creating a new product');
+      this.logger.debug(JSON.stringify(createProductDto));
+      const product = await this.productsService.create(
+        createProductDto,
+        user.userId,
+      );
+      return product;
+    } catch (error) {
+      throw new BadRequestException('Failed to create product');
+    }
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  async findAll() {
+    try {
+      const products = await this.productsService.findAll();
+      return products;
+    } catch (error) {
+      this.logger.error(`Failed to find all products: ${error.message}`);
+      throw error;
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  @Get('details/:id')
+  async findOne(@Param('id') id: string) {
+    try {
+      const product = await this.productsService.findOne(+id);
+      return product;
+    } catch (error) {
+      this.logger.error(
+        `Failed to find product with id ${id}: ${error.message}`,
+      );
+      throw error;
+    }
   }
+
+  @Post(':id/images')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: {
+        destination: diskStorage({
+          destination: 'public/products',
+          filename: (req, file, cb) => {
+            const filename = `${req.params.id}-${Date.now()}-${extname(
+              file.originalname,
+            )}`;
+            cb(null, filename);
+          },
+        }),
+      },
+    }),
+  )
+  async uploadImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5000000 }),
+          new FileTypeValidator({ fileType: 'image/*' }),
+        ],
+      }),
+    ) // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _file: Express.Multer.File,
+  ) {}
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
+  @UseGuards(JwtAuthGuard)
+  @ZodValidation(ProductSchema)
+  async update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    try {
+      this.logger.info(`Updating product with id ${id}`);
+      this.logger.debug(`Update data: ${JSON.stringify(updateProductDto)}`);
+      const product = await this.productsService.update(+id, updateProductDto);
+      return product;
+    } catch (error) {
+      this.logger.error(
+        `Failed to update product with id ${id}: ${error.message}`,
+      );
+      throw error;
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: string) {
+    try {
+      this.logger.info(`Removing product with id ${id}`);
+      const result = await this.productsService.remove(+id);
+      return result;
+    } catch (error) {
+      this.logger.error(
+        `Failed to remove product with id ${id}: ${error.message}`,
+      );
+      throw error;
+    }
   }
 }
