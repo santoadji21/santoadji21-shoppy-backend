@@ -1,4 +1,3 @@
-// messages.constants.ts
 export const USER_MESSAGES = {
   REQUEST_SUCCESS: 'User request successful',
   CREATED_SUCCESS: 'User created successfully',
@@ -9,6 +8,7 @@ export const USER_MESSAGES = {
 export const PRODUCT_MESSAGES = {
   REQUEST_SUCCESS: 'Product request successful',
   CREATED_SUCCESS: 'Product created successfully',
+  IMAGE_UPLOAD_SUCCESS: 'Image uploaded successfully',
 };
 
 export const DEFAULT_MESSAGES = {

@@ -84,17 +84,13 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: {
-        destination: diskStorage({
-          destination: 'public/products',
-          filename: (req, file, cb) => {
-            const filename = `${req.params.id}-${Date.now()}-${extname(
-              file.originalname,
-            )}`;
-            cb(null, filename);
-          },
-        }),
-      },
+      storage: diskStorage({
+        destination: 'public/products',
+        filename: (req, file, cb) => {
+          const filename = `${req.params.id}-${Date.now()}${extname(file.originalname)}`;
+          cb(null, filename);
+        },
+      }),
     }),
   )
   async uploadImage(
@@ -105,9 +101,12 @@ export class ProductsController {
           new FileTypeValidator({ fileType: 'image/*' }),
         ],
       }),
-    ) // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _file: Express.Multer.File,
-  ) {}
+    )
+    file: Express.Multer.File,
+  ) {
+    const filePath = `public/products/${file.filename}`;
+    return { path: filePath };
+  }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)

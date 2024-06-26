@@ -16,7 +16,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
               target: 'pino-pretty',
               options: {
                 colorize: true,
-                // singleLine: true,
+                singleLine: true,
               },
             },
           },

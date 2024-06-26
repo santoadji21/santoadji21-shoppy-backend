@@ -5,15 +5,17 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { z } from 'zod';
 
 export const ResponseSchema = z.object({
   statusCode: z.number(),
   message: z.string(),
+  error: z.boolean(),
   data: z.any(),
 });
+
 export const GetMessageSchema = z.object({
   statusCode: z.number(),
   path: z.string(),
@@ -42,8 +44,19 @@ export class TransformInterceptor<T>
           statusCode,
           path,
         }),
+        error: false,
         data,
       })),
+      catchError((error) => {
+        const errorResponse = {
+          statusCode: error.status || 500,
+          message: error.message || 'Internal server error',
+          error: true,
+          data: null,
+        };
+        response.status(errorResponse.statusCode).json(errorResponse);
+        return throwError(() => error);
+      }),
     );
   }
 

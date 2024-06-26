@@ -30,6 +30,7 @@ export class CustomUnauthorizedException extends UnauthorizedException {
     super({
       message: 'You are not authorized to perform this action',
       statusCode: 401,
+      error: true,
     });
   }
 }
