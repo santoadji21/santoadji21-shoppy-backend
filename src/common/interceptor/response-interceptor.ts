@@ -2,6 +2,8 @@ import { MESSAGE_MAP } from '@/common/constants/message-map.constant';
 import {
   CallHandler,
   ExecutionContext,
+  HttpException,
+  HttpStatus,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
@@ -15,7 +17,6 @@ export const ResponseSchema = z.object({
   error: z.boolean(),
   data: z.any(),
 });
-
 export const GetMessageSchema = z.object({
   statusCode: z.number(),
   path: z.string(),
@@ -40,27 +41,48 @@ export class TransformInterceptor<T>
     return next.handle().pipe(
       map((data) => ({
         statusCode,
-        message: this.getSuccessMessage({
+        message: this.getResponseMessage({
           statusCode,
           path,
         }),
-        error: false,
         data,
+        error: false,
       })),
-      catchError((error) => {
-        const errorResponse = {
-          statusCode: error.status || 500,
-          message: error.message || 'Internal server error',
-          error: true,
-          data: null,
-        };
-        response.status(errorResponse.statusCode).json(errorResponse);
-        return throwError(() => error);
+      catchError((err) => {
+        if (
+          err instanceof HttpException &&
+          err.getStatus() === HttpStatus.BAD_REQUEST
+        ) {
+          return throwError(() => err);
+        }
+        // Handle other errors
+        const status =
+          err instanceof HttpException
+            ? err.getStatus()
+            : HttpStatus.INTERNAL_SERVER_ERROR;
+        let message = err.message || 'Internal server error';
+
+        if (err.response && err.response.message) {
+          message = err.response.message;
+        }
+
+        return throwError(
+          () =>
+            new HttpException(
+              {
+                statusCode: status,
+                message,
+                error: true,
+                data: null,
+              },
+              status,
+            ),
+        );
       }),
     );
   }
 
-  private getSuccessMessage({ statusCode, path }: GetMessage): string {
+  private getResponseMessage({ statusCode, path }: GetMessage): string {
     const basePath =
       Object.keys(MESSAGE_MAP).find((key) => path.includes(key)) || 'default';
     const pathMessages = MESSAGE_MAP[basePath];

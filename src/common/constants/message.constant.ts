@@ -9,6 +9,16 @@ export const PRODUCT_MESSAGES = {
   REQUEST_SUCCESS: 'Product request successful',
   CREATED_SUCCESS: 'Product created successfully',
   IMAGE_UPLOAD_SUCCESS: 'Image uploaded successfully',
+  NOT_FOUND: 'Product not found',
+};
+
+export const CHECKOUT_MESSAGES = {
+  REQUEST_SUCCESS: 'Checkout request successful',
+  CREATED_SUCCESS: 'Checkout created successfully',
+  UPDATED_SUCCESS: 'Checkout updated successfully',
+  DELETED_SUCCESS: 'Checkout deleted successfully',
+  REQUEST_PROCESSED: 'Request processed successfully',
+  NOT_FOUND: 'Checkout not found',
 };
 
 export const DEFAULT_MESSAGES = {

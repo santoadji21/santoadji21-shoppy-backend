@@ -4,7 +4,7 @@ import {
 } from '@/features/products/dto/product.dto';
 import { FileUtilsService } from '@/features/products/file.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class ProductsService {
@@ -33,16 +33,20 @@ export class ProductsService {
   }
 
   async findOne(id: number) {
-    const product = await this.prismaService.product.findUniqueOrThrow({
-      where: { id },
-    });
+    try {
+      const product = await this.prismaService.product.findUniqueOrThrow({
+        where: { id },
+      });
 
-    const imagePath = await this.fileService.getImagePath(id);
+      const imagePath = await this.fileService.getImagePath(id);
 
-    return {
-      ...product,
-      imagePath,
-    };
+      return {
+        ...product,
+        imagePath,
+      };
+    } catch (error) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {

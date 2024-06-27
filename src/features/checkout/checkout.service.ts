@@ -21,17 +21,16 @@ export class CheckoutService {
             currency: 'usd',
             product_data: {
               name: product.name,
-              images: [product.imagePath ? product.imagePath : ''],
               description: product.description,
             },
-            unit_amount: product.price * 100,
+            unit_amount: Math.round(product.price * 100),
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: this.configService.getOrThrow('FRONTEND_URL') + '/success',
-      cancel_url: this.configService.getOrThrow('FRONTEND_URL') + '/cancel',
+      success_url: `${this.configService.getOrThrow('FRONTEND_URL')}/success`,
+      cancel_url: `${this.configService.getOrThrow('FRONTEND_URL')}/cancel`,
     });
     return session;
   }

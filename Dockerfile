@@ -36,9 +36,6 @@ ENV NODE_ENV=${NODE_ENV}
 # Create app directory inside the container
 WORKDIR /usr/src/app
 
-# Install openssl
-RUN apk add openssl3
-
 # Copy package.json, package-lock.json, and pnpm-lock.yaml to the container
 COPY package*.json ./
 COPY pnpm-lock.yaml ./
@@ -49,15 +46,8 @@ RUN npm install -g pnpm
 # Install only production dependencies
 RUN pnpm install --prod
 
-# Copy the Prisma Client and schema from the development stage
-COPY --from=development /usr/src/app/prisma ./prisma
-COPY --from=development /usr/src/app/node_modules/.prisma ./node_modules/.prisma
-
 # Copy the build application from the development stage
 COPY --from=development /usr/src/app/dist ./dist
-
-# Copy the necessary source files
-COPY --from=development /usr/src/app/node_modules ./node_modules
 
 # Run the application
 CMD ["node", "dist/main"]
