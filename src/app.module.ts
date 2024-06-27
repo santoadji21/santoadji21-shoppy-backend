@@ -9,6 +9,7 @@ import { ProductsModule } from '@/features/products/products.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { CheckoutModule } from './features/checkout/checkout.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { join } from 'path';
     PrismaModule,
     AuthModule,
     ProductsModule,
+    CheckoutModule,
   ],
   controllers: [],
   providers: [

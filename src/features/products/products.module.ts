@@ -8,5 +8,6 @@ import { FileUtilsService } from '@/features/products/file.service';
   imports: [ProductsModule],
   controllers: [ProductsController],
   providers: [ProductsService, PrismaService, FileUtilsService],
+  exports: [ProductsService],
 })
 export class ProductsModule {}
