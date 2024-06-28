@@ -49,4 +49,8 @@ export class AuthService {
 
     return excludePassword(user);
   }
+
+  verifyToken(token: string): Promise<any> {
+    return this.jwtService.verify(token);
+  }
 }

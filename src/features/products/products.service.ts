@@ -3,6 +3,7 @@ import {
   UpdateProductDto,
 } from '@/features/products/dto/product.dto';
 import { FileUtilsService } from '@/features/products/file.service';
+import { ProductGateway } from '@/features/products/product.gateway';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
@@ -11,15 +12,18 @@ export class ProductsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly fileService: FileUtilsService,
+    private readonly productGateway: ProductGateway,
   ) {}
 
   async create(createProductDto: CreateProductDto, userId: number) {
-    return await this.prismaService.product.create({
+    const product = await this.prismaService.product.create({
       data: {
         ...createProductDto,
         userId,
       },
     });
+    this.productGateway.handleProductUpdated();
+    return product;
   }
 
   async findAll() {
@@ -50,12 +54,14 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    return await this.prismaService.product.update({
+    const updateProduct = await this.prismaService.product.update({
       where: {
         id,
       },
       data: updateProductDto,
     });
+    this.productGateway.handleProductUpdated();
+    return updateProduct;
   }
 
   async remove(id: number) {
