@@ -17,4 +17,10 @@ export class CheckoutController {
   async createSession(@Body() request: CreateSessionRequestDto) {
     return this.checkoutService.createSession(request);
   }
+
+  @Post('webhook')
+  @UseGuards(JwtAuthGuard)
+  async handleCheckoutWebhook(@Body() event: any) {
+    return this.checkoutService.handleCheckoutWebhook(event);
+  }
 }

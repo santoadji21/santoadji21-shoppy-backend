@@ -46,6 +46,17 @@ services:
     networks:
       - nest-shoppy
 
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe-cli
+    command: listen --forward-to http://nest_shoppy:3001/webhook
+    env_file:
+      - ./.env
+    volumes:
+      - ./stripe-cli:/root/.config/stripe
+    networks:
+      - nest-shoppy
+
 volumes:
   nest-shoppy:
     driver: local

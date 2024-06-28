@@ -35,15 +35,8 @@ export class CheckoutService {
     return session;
   }
 
-  findAll() {
-    return `This action returns all checkout`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} checkout`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} checkout`;
+  async handleCheckoutWebhook(event: any) {
+    console.log(event);
+    return event;
   }
 }
